@@ -1,5 +1,8 @@
 "use strict";
-// ─── Nomes esperados dos styles (parte após a última "/") ─────────────────────
+// ─── ID do arquivo da biblioteca (extraído da URL do Figma) ──────────────────
+// Formato da URL: figma.com/file/XXXXXXXXXXXXXX/nome-do-arquivo
+// Substitua pela ID real do seu arquivo de biblioteca.
+const LIBRARY_FILE_KEY = "COLE_AQUI_O_ID_DA_BIBLIOTECA";
 const STYLE_NAMES = {
     PAGE: "Página Inicial",
     LAYER_1: "Primeira camada",
@@ -7,6 +10,7 @@ const STYLE_NAMES = {
     LAYER_3: "Terceira camada",
     LAYER_4: "Quarta camada",
     LAYER_5: "Quinta camada",
+    LAYER_6: "Sexta camada",
     UPDATE: "Atualizações Recentes",
     NEW: "Novas jornadas",
     ARCHIVED: "Jornadas arquivadas",
@@ -15,11 +19,8 @@ const STYLE_NAMES = {
     SYSTEM: "Sistema",
     COMPONENTS: "Componentes",
 };
-// ─── Mapeamento de prefixo de nome → style ────────────────────────────────────
-const PREFIX_STYLE_MAP = [
-    { prefix: "1-login", styleName: STYLE_NAMES.PAGE },
-    { prefix: "2-home", styleName: STYLE_NAMES.PAGE },
-];
+// ─── Sections com nome exato que recebem a cor de Página Inicial ──────────────
+const PAGE_SECTION_NAMES = ["1 - Login", "2 - Home"];
 // ─── Mapeamento de profundidade → style ───────────────────────────────────────
 const DEPTH_STYLE_NAMES = [
     STYLE_NAMES.LAYER_1,
@@ -27,6 +28,7 @@ const DEPTH_STYLE_NAMES = [
     STYLE_NAMES.LAYER_3,
     STYLE_NAMES.LAYER_4,
     STYLE_NAMES.LAYER_5,
+    STYLE_NAMES.LAYER_6, // fallback para profundidade 6+
 ];
 // ─── Styles que o plugin nunca deve alterar ───────────────────────────────────
 const IMMUTABLE_STYLE_NAMES = [
@@ -36,23 +38,20 @@ const IMMUTABLE_STYLE_NAMES = [
 ];
 const STORAGE_KEY = "styleKeyMap";
 // ─── Abre a UI ────────────────────────────────────────────────────────────────
-figma.showUI(__html__, { width: 240, height: 260, title: "Section Color Reset" });
+figma.showUI(__html__, { width: 280, height: 620, title: "Section Color Reset", themeColors: true });
 // ─── Helpers de comunicação com a UI ─────────────────────────────────────────
-function sendSuccess(text) {
-    figma.ui.postMessage({ type: "success", text });
+function sendSetupDone(success, text, detail, styleNames) {
+    figma.ui.postMessage({ type: "setup-done", success, text, detail, styleNames });
 }
-function sendError(text) {
-    figma.ui.postMessage({ type: "error", text });
-}
-function sendInfo(text) {
-    figma.ui.postMessage({ type: "info", text });
+function sendResetDone(success, text, stats, detail) {
+    figma.ui.postMessage({ type: "reset-done", success, text, stats, detail });
 }
 // ─── SETUP: salva keys dos styles locais ──────────────────────────────────────
 // Rode no arquivo da BIBLIOTECA onde os styles foram criados.
 async function saveStyleKeys() {
     const styles = await figma.getLocalPaintStylesAsync();
     if (styles.length === 0) {
-        sendError("Nenhum style local encontrado. Abra o arquivo da biblioteca.");
+        sendSetupDone(false, "Nenhum style local encontrado.", "Abra o arquivo da biblioteca e rode o setup novamente.");
         return;
     }
     const keyMap = {};
@@ -67,30 +66,22 @@ async function saveStyleKeys() {
         }
     }
     const missing = Object.values(STYLE_NAMES).filter((n) => !keyMap[n]);
-    if (missing.length > 0) {
-        console.warn("⚠️ Não encontrados:", missing.join(", "));
-    }
     if (Object.keys(keyMap).length === 0) {
-        sendError("Nenhum style mapeado. Verifique os nomes na biblioteca.");
+        sendSetupDone(false, "Nenhum style mapeado.", "Verifique se os nomes dos styles batem com o esperado.");
         return;
     }
     await figma.clientStorage.setAsync(STORAGE_KEY, keyMap);
     const total = Object.keys(keyMap).length;
     const expectedCount = Object.keys(STYLE_NAMES).length;
-    const missingCount = missing.length;
-    const msg = missingCount > 0
-        ? `${total} de ${expectedCount} keys salvos. Faltaram: ${missing.join(", ")}`
-        : `${total} de ${expectedCount} keys salvos com sucesso!`;
-    console.log(msg);
-    sendSuccess(msg);
-    figma.notify(`✅ Setup concluído: ${total} de ${expectedCount} styles salvos.`);
+    const detail = missing.length > 0 ? `Não encontrados: ${missing.join(", ")}` : undefined;
+    sendSetupDone(missing.length === 0, `${total} de ${expectedCount} styles salvos com sucesso.`, detail, Object.keys(keyMap));
+    figma.notify(`✅ Setup: ${total} de ${expectedCount} styles salvos.`);
 }
 // ─── Carrega styles via keys salvas (suporta team library) ────────────────────
 async function loadStylesFromKeys() {
     const keyMap = await figma.clientStorage.getAsync(STORAGE_KEY);
-    if (!keyMap || Object.keys(keyMap).length === 0) {
+    if (!keyMap || Object.keys(keyMap).length === 0)
         return {};
-    }
     const styleMap = {};
     for (const [styleName, key] of Object.entries(keyMap)) {
         try {
@@ -106,7 +97,7 @@ async function loadStylesFromKeys() {
     }
     return styleMap;
 }
-// ─── Fallback: styles já aplicados nas sections ───────────────────────────────
+// ─── Fallback: auto-descoberta via fills já aplicados ─────────────────────────
 async function discoverStylesFromFile() {
     const styleMap = {};
     const seenIds = new Set();
@@ -137,7 +128,6 @@ async function discoverStylesFromFile() {
     }
     return styleMap;
 }
-// ─── Carrega styles (keys salvas → fallback auto-descoberta) ──────────────────
 async function getStyleMap() {
     const fromKeys = await loadStylesFromKeys();
     if (Object.keys(fromKeys).length > 0)
@@ -162,16 +152,22 @@ function getSectionDepth(section) {
     }
     return depth;
 }
+// ─── Regra: nome exato → Página Inicial ───────────────────────────────────────
+function isPageSection(section) {
+    const trimmed = section.name.trim();
+    return PAGE_SECTION_NAMES.includes(trimmed);
+}
+// ─── Resolução de style esperado ─────────────────────────────────────────────
 function resolveExpectedStyle(section, styleMap) {
     var _a, _b;
-    const name = section.name.trim().toLowerCase();
-    const prefixRule = PREFIX_STYLE_MAP.find((r) => name.startsWith(r.prefix));
-    if (prefixRule)
-        return (_a = styleMap[prefixRule.styleName]) !== null && _a !== void 0 ? _a : null;
+    if (isPageSection(section)) {
+        return (_a = styleMap[STYLE_NAMES.PAGE]) !== null && _a !== void 0 ? _a : null;
+    }
     const depth = getSectionDepth(section);
     const index = Math.min(depth - 1, DEPTH_STYLE_NAMES.length - 1);
     return (_b = styleMap[DEPTH_STYLE_NAMES[index]]) !== null && _b !== void 0 ? _b : null;
 }
+// ─── Verificação de imutabilidade ─────────────────────────────────────────────
 function isImmutable(section, styleMap) {
     const fillStyleId = section.fillStyleId;
     if (typeof fillStyleId !== "string")
@@ -181,11 +177,20 @@ function isImmutable(section, styleMap) {
         .filter((id) => Boolean(id));
     return immutableIds.includes(fillStyleId);
 }
+// ─── Nota sobre strokes ───────────────────────────────────────────────────────
+// A API do Figma não expõe a propriedade "strokes" para SectionNode.
+// Isso é uma limitação conhecida da API — não é possível remover strokes
+// de sections via plugin até que o Figma implemente esse suporte.
 // ─── RESET: aplica os styles corretos nas sections ────────────────────────────
 async function resetSectionColors() {
+    if (figma.fileKey === LIBRARY_FILE_KEY) {
+        sendResetDone(false, "Reset bloqueado na biblioteca.", undefined, "O reset não pode ser executado no arquivo da biblioteca. Abra um arquivo de projeto.");
+        figma.notify("⛔ Reset bloqueado — abra um arquivo de projeto.", { error: true });
+        return;
+    }
     const styleMap = await getStyleMap();
     if (Object.keys(styleMap).length === 0) {
-        sendError("Nenhum style encontrado. Rode o Setup na biblioteca primeiro.");
+        sendResetDone(false, "Nenhum style encontrado.", undefined, "Rode o Setup no arquivo da biblioteca primeiro.");
         figma.notify("❌ Rode o Setup na biblioteca primeiro.", { error: true });
         return;
     }
@@ -212,14 +217,26 @@ async function resetSectionColors() {
             console.log(`✅ "${section.name}" → "${expected.name}"`);
         }
     }
-    const resultMsg = `${updated} atualizadas | ${ignored} ignoradas | ${skipped} sem style`;
-    console.log(resultMsg);
-    sendSuccess(resultMsg);
-    figma.notify(`✅ ${resultMsg}`);
+    const stats = { updated, ignored, skipped };
+    const detail = missing.length > 0
+        ? `Styles não encontrados: ${missing.join(", ")}`
+        : undefined;
+    sendResetDone(true, `${updated} atualizadas · ${ignored} ignoradas · ${skipped} sem style`, stats, detail);
+    figma.notify(`✅ ${updated} atualizadas | 🔒 ${ignored} ignoradas`);
 }
 // ─── Recebe mensagens da UI ───────────────────────────────────────────────────
 figma.ui.onmessage = async (msg) => {
     try {
+        if (msg.type === "check-setup") {
+            const keyMap = await figma.clientStorage.getAsync(STORAGE_KEY);
+            const done = keyMap && Object.keys(keyMap).length > 0;
+            figma.ui.postMessage({ type: "setup-status", done: !!done });
+            return;
+        }
+        if (msg.type === "resize" && msg.height) {
+            figma.ui.resize(280, Math.min(Math.max(msg.height, 300), 900));
+            return;
+        }
         if (msg.type === "setup") {
             await saveStyleKeys();
         }
@@ -229,7 +246,11 @@ figma.ui.onmessage = async (msg) => {
     }
     catch (error) {
         console.error(error);
-        sendError("Erro inesperado. Veja o console.");
+        figma.ui.postMessage({
+            type: msg.type === "setup" ? "setup-done" : "reset-done",
+            success: false,
+            text: "Erro inesperado. Veja o console para detalhes."
+        });
         figma.notify("❌ Erro ao executar plugin", { error: true });
     }
 };
