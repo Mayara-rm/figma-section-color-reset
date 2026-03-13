@@ -1,36 +1,69 @@
-import { STORAGE_KEY, STYLE_NAMES } from "./constants"
+import { STORAGE_KEY, PAGE_STYLE_NAME, FOLDER_IMMUTABLE } from "./constants"
+import { StyleKeyMap } from "./setup"
 
-// ─── Carrega styles via keys salvas no clientStorage ─────────────────────────
-// Funciona com team library pois usa importStyleByKeyAsync.
+// ─── Estrutura de styles resolvidos ──────────────────────────────────────────
 
-export async function loadStylesFromKeys(): Promise<Record<string, BaseStyle>> {
-  const keyMap: Record<string, string> | null =
-    await figma.clientStorage.getAsync(STORAGE_KEY)
+export interface ResolvedStyleMap {
+  page:      BaseStyle | null
+  layers:    Record<number, BaseStyle>   // depth → style
+  states:    Record<string, BaseStyle>   // nome → style
+  immutable: Record<string, BaseStyle>   // nome → style
+}
 
-  if (!keyMap || Object.keys(keyMap).length === 0) return {}
+// ─── Carrega styles via keys salvas (suporta team library) ────────────────────
 
-  const styleMap: Record<string, BaseStyle> = {}
+export async function loadStylesFromKeys(): Promise<ResolvedStyleMap | null> {
+  const keyMap: StyleKeyMap | null = await figma.clientStorage.getAsync(STORAGE_KEY)
+  if (!keyMap) return null
 
-  for (const [styleName, key] of Object.entries(keyMap)) {
+  const result: ResolvedStyleMap = { page: null, layers: {}, states: {}, immutable: {} }
+
+  // Página Inicial
+  if (keyMap.page) {
     try {
-      const style = await figma.importStyleByKeyAsync(key)
-      if (style) {
-        styleMap[styleName] = style
-        console.log(`✅ Importado: "${styleName}"`)
-      }
+      result.page = await figma.importStyleByKeyAsync(keyMap.page)
     } catch {
-      console.warn(`⚠️ Falha ao importar "${styleName}" (key: ${key})`)
+      console.warn("⚠️ Falha ao importar Página Inicial")
     }
   }
 
-  return styleMap
+  // Camadas
+  for (const [depthStr, key] of Object.entries(keyMap.layers)) {
+    try {
+      const style = await figma.importStyleByKeyAsync(key)
+      if (style) result.layers[Number(depthStr)] = style
+    } catch {
+      console.warn(`⚠️ Falha ao importar camada ${depthStr}`)
+    }
+  }
+
+  // Estados
+  for (const [name, key] of Object.entries(keyMap.states)) {
+    try {
+      const style = await figma.importStyleByKeyAsync(key)
+      if (style) result.states[name] = style
+    } catch {
+      console.warn(`⚠️ Falha ao importar estado "${name}"`)
+    }
+  }
+
+  // Imutáveis
+  for (const [name, key] of Object.entries(keyMap.immutable)) {
+    try {
+      const style = await figma.importStyleByKeyAsync(key)
+      if (style) result.immutable[name] = style
+    } catch {
+      console.warn(`⚠️ Falha ao importar imutável "${name}"`)
+    }
+  }
+
+  return result
 }
 
 // ─── Fallback: descobre styles via fills já aplicados nas sections ────────────
-// Útil quando as keys não estão salvas mas os styles já foram usados no arquivo.
 
-export async function discoverStylesFromFile(): Promise<Record<string, BaseStyle>> {
-  const styleMap: Record<string, BaseStyle> = {}
+export async function discoverStylesFromFile(): Promise<ResolvedStyleMap> {
+  const result: ResolvedStyleMap = { page: null, layers: {}, states: {}, immutable: {} }
   const seenIds = new Set<string>()
 
   for (const page of figma.root.children) {
@@ -46,28 +79,30 @@ export async function discoverStylesFromFile(): Promise<Record<string, BaseStyle
         const style = await figma.getStyleByIdAsync(fillStyleId)
         if (!style) continue
 
-        const parts = style.name.split("/")
-        const lastName = parts[parts.length - 1].trim()
+        const lastName = style.name.split("/").pop()?.trim() ?? ""
+        const folder = style.name.split("/").slice(-2, -1)[0]?.trim() ?? ""
 
-        for (const [, expected] of Object.entries(STYLE_NAMES)) {
-          if (lastName.toLowerCase() === expected.toLowerCase()) {
-            styleMap[expected] = style
-          }
+        if (lastName.toLowerCase() === PAGE_STYLE_NAME.toLowerCase()) {
+          result.page = style
+        } else if (folder === FOLDER_IMMUTABLE) {
+          result.immutable[lastName] = style
         }
       } catch {
-        // ignorar erros de style não encontrado
+        // ignorar
       }
     }
   }
 
-  return styleMap
+  return result
 }
 
 // ─── Orquestra: tenta keys primeiro, fallback para descoberta ─────────────────
 
-export async function getStyleMap(): Promise<Record<string, BaseStyle>> {
+export async function getStyleMap(): Promise<ResolvedStyleMap> {
   const fromKeys = await loadStylesFromKeys()
-  if (Object.keys(fromKeys).length > 0) return fromKeys
+  if (fromKeys && (fromKeys.page || Object.keys(fromKeys.layers).length > 0)) {
+    return fromKeys
+  }
 
   console.warn("Nenhuma key salva. Tentando auto-descoberta...")
   return await discoverStylesFromFile()

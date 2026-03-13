@@ -1,4 +1,4 @@
-import { LIBRARY_FILE_KEY, STYLE_NAMES } from "./constants"
+import { LIBRARY_FILE_KEY } from "./constants"
 import { getStyleMap } from "./styles"
 import { getSections, isImmutable, resolveExpectedStyle } from "./utils"
 
@@ -32,8 +32,9 @@ export async function resetSectionColors(): Promise<void> {
   }
 
   const styleMap = await getStyleMap()
+  const totalLayers = Object.keys(styleMap.layers).length
 
-  if (Object.keys(styleMap).length === 0) {
+  if (!styleMap.page && totalLayers === 0) {
     sendResetDone(
       false,
       "Nenhum style encontrado.",
@@ -44,13 +45,8 @@ export async function resetSectionColors(): Promise<void> {
     return
   }
 
-  const missing = Object.values(STYLE_NAMES).filter((n) => !styleMap[n])
-  if (missing.length > 0) {
-    console.warn("⚠️ Styles não encontrados:", missing.join(", "))
-  }
-
   const sections = getSections()
-  console.log("Total de sections:", sections.length)
+  console.log(`Total de sections: ${sections.length} | Camadas disponíveis: ${totalLayers}`)
 
   let updated = 0, ignored = 0, skipped = 0
 
@@ -75,15 +71,11 @@ export async function resetSectionColors(): Promise<void> {
   }
 
   const stats = { updated, ignored, skipped }
-  const detail = missing.length > 0
-    ? `Styles não encontrados: ${missing.join(", ")}`
-    : undefined
 
   sendResetDone(
     true,
     `${updated} atualizadas · ${ignored} ignoradas · ${skipped} sem style`,
-    stats,
-    detail
+    stats
   )
 
   figma.notify(`✅ ${updated} atualizadas | 🔒 ${ignored} ignoradas`)

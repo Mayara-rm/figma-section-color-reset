@@ -1,9 +1,5 @@
-import {
-  PAGE_SECTION_NAMES,
-  DEPTH_STYLE_NAMES,
-  IMMUTABLE_STYLE_NAMES,
-  STYLE_NAMES,
-} from "./constants"
+import { PAGE_SECTION_NAMES } from "./constants"
+import { ResolvedStyleMap } from "./styles"
 
 // ─── Retorna sections selecionadas ou todas da página ─────────────────────────
 
@@ -34,32 +30,41 @@ export function isPageSection(section: SectionNode): boolean {
 }
 
 // ─── Resolve qual style deve ser aplicado na section ─────────────────────────
+// Lógica: nome exato → Página Inicial | profundidade → camada mais próxima
 
 export function resolveExpectedStyle(
   section: SectionNode,
-  styleMap: Record<string, BaseStyle>
+  styleMap: ResolvedStyleMap
 ): BaseStyle | null {
   if (isPageSection(section)) {
-    return styleMap[STYLE_NAMES.PAGE] ?? null
+    return styleMap.page
   }
 
   const depth = getSectionDepth(section)
-  const index = Math.min(depth - 1, DEPTH_STYLE_NAMES.length - 1)
-  return styleMap[DEPTH_STYLE_NAMES[index]] ?? null
+  const availableDepths = Object.keys(styleMap.layers).map(Number).sort((a, b) => a - b)
+
+  if (availableDepths.length === 0) return null
+
+  // Usa a camada exata ou a mais profunda disponível como fallback
+  const targetDepth = availableDepths.includes(depth)
+    ? depth
+    : availableDepths[availableDepths.length - 1]
+
+  return styleMap.layers[targetDepth] ?? null
 }
 
 // ─── Verifica se a section tem um style imutável aplicado ────────────────────
 
 export function isImmutable(
   section: SectionNode,
-  styleMap: Record<string, BaseStyle>
+  styleMap: ResolvedStyleMap
 ): boolean {
   const fillStyleId = section.fillStyleId
   if (typeof fillStyleId !== "string") return false
 
-  const immutableIds = IMMUTABLE_STYLE_NAMES
-    .map((name) => styleMap[name]?.id)
-    .filter((id): id is string => Boolean(id))
+  const immutableIds = Object.values(styleMap.immutable)
+    .map((s) => s.id)
+    .filter(Boolean)
 
   return immutableIds.includes(fillStyleId)
 }

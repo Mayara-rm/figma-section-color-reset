@@ -3,105 +3,117 @@
   // src/constants.ts
   var LIBRARY_FILE_KEY = "COLE_AQUI_O_ID_DA_BIBLIOTECA";
   var STORAGE_KEY = "styleKeyMap";
-  var STYLE_NAMES = {
-    PAGE: "P\xE1gina Inicial",
-    LAYER_1: "Primeira camada",
-    LAYER_2: "Segunda camada",
-    LAYER_3: "Terceira camada",
-    LAYER_4: "Quarta camada",
-    LAYER_5: "Quinta camada",
-    LAYER_6: "Sexta camada",
-    UPDATE: "Atualiza\xE7\xF5es Recentes",
-    NEW: "Novas jornadas",
-    ARCHIVED: "Jornadas arquivadas",
-    IN_PROGRESS: "Jornada em andamento",
-    ICONS: "Icones",
-    SYSTEM: "Sistema",
-    COMPONENTS: "Componentes"
-  };
   var PAGE_SECTION_NAMES = ["1 - Login", "2 - Home"];
-  var DEPTH_STYLE_NAMES = [
-    STYLE_NAMES.LAYER_1,
-    STYLE_NAMES.LAYER_2,
-    STYLE_NAMES.LAYER_3,
-    STYLE_NAMES.LAYER_4,
-    STYLE_NAMES.LAYER_5,
-    STYLE_NAMES.LAYER_6
-    // fallback para profundidade 6+
-  ];
-  var IMMUTABLE_STYLE_NAMES = [
-    STYLE_NAMES.ICONS,
-    STYLE_NAMES.SYSTEM,
-    STYLE_NAMES.COMPONENTS
-  ];
+  var PAGE_STYLE_NAME = "P\xE1gina Inicial";
+  var FOLDER_BASE = "Cores Base";
+  var FOLDER_IMMUTABLE = "Cores de Identifica\xE7\xE3o";
+  var FOLDER_STATE = "Cores de Estado";
 
   // src/setup.ts
-  function sendSetupDone(success, text, detail, styleNames) {
-    figma.ui.postMessage({ type: "setup-done", success, text, detail, styleNames });
+  function sendSetupDone(success, text, detail) {
+    figma.ui.postMessage({ type: "setup-done", success, text, detail });
+  }
+  function extractLayerDepth(styleName) {
+    const match = styleName.match(/camada\s*(\d+)/i);
+    if (!match) return null;
+    const depth = parseInt(match[1], 10);
+    return isNaN(depth) ? null : depth;
+  }
+  function parseFolderAndName(fullName) {
+    const parts = fullName.split("/");
+    const styleName = parts[parts.length - 1].trim();
+    const folder = parts.length >= 2 ? parts[parts.length - 2].trim() : "";
+    return { folder, styleName };
   }
   async function saveStyleKeys() {
     const styles = await figma.getLocalPaintStylesAsync();
     if (styles.length === 0) {
-      sendSetupDone(
-        false,
-        "Nenhum style local encontrado.",
-        "Abra o arquivo da biblioteca e rode o setup novamente."
-      );
+      sendSetupDone(false, "Nenhum style local encontrado.", "Abra o arquivo da biblioteca e rode o setup novamente.");
       return;
     }
-    const keyMap = {};
+    const keyMap = { page: "", layers: {}, states: {}, immutable: {} };
     for (const style of styles) {
-      const parts = style.name.split("/");
-      const lastName = parts[parts.length - 1].trim();
-      for (const [key, expected] of Object.entries(STYLE_NAMES)) {
-        if (lastName.toLowerCase() === expected.toLowerCase()) {
-          keyMap[expected] = style.key;
-          console.log(`\u2705 [${key}] "${expected}" \u2192 ${style.key}`);
+      const { folder, styleName } = parseFolderAndName(style.name);
+      if (folder === FOLDER_IMMUTABLE) {
+        keyMap.immutable[styleName] = style.key;
+        console.log(`\u{1F512} Imut\xE1vel: "${styleName}"`);
+        continue;
+      }
+      if (folder === FOLDER_STATE) {
+        keyMap.states[styleName] = style.key;
+        console.log(`\u{1F3A8} Estado: "${styleName}"`);
+        continue;
+      }
+      if (folder === FOLDER_BASE) {
+        if (styleName.toLowerCase() === PAGE_STYLE_NAME.toLowerCase()) {
+          keyMap.page = style.key;
+          console.log(`\u{1F3E0} P\xE1gina Inicial \u2192 ${style.key}`);
+          continue;
+        }
+        const depth = extractLayerDepth(styleName);
+        if (depth !== null) {
+          keyMap.layers[depth] = style.key;
+          console.log(`\u{1F4D0} Camada ${depth}: "${styleName}"`);
+          continue;
         }
       }
     }
-    if (Object.keys(keyMap).length === 0) {
-      sendSetupDone(
-        false,
-        "Nenhum style mapeado.",
-        "Verifique se os nomes dos styles batem com o esperado."
-      );
+    if (!keyMap.page && Object.keys(keyMap.layers).length === 0) {
+      sendSetupDone(false, "Nenhum style mapeado.", "Verifique se os folders e nomes batem com o esperado.");
       return;
     }
     await figma.clientStorage.setAsync(STORAGE_KEY, keyMap);
-    const total = Object.keys(keyMap).length;
-    const expectedCount = Object.keys(STYLE_NAMES).length;
-    const missing = Object.values(STYLE_NAMES).filter((n) => !keyMap[n]);
-    const detail = missing.length > 0 ? `N\xE3o encontrados: ${missing.join(", ")}` : void 0;
+    const totalLayers = Object.keys(keyMap.layers).length;
+    const totalStates = Object.keys(keyMap.states).length;
+    const totalImmutable = Object.keys(keyMap.immutable).length;
     sendSetupDone(
-      missing.length === 0,
-      `${total} de ${expectedCount} styles salvos com sucesso.`,
-      detail,
-      Object.keys(keyMap)
+      true,
+      `${totalLayers} camadas \xB7 ${totalStates} estados \xB7 ${totalImmutable} imut\xE1veis salvos.`
     );
-    figma.notify(`\u2705 Setup: ${total} de ${expectedCount} styles salvos.`);
+    figma.notify(`\u2705 Setup: ${totalLayers} camadas \xB7 ${totalStates} estados \xB7 ${totalImmutable} imut\xE1veis`);
   }
 
   // src/styles.ts
   async function loadStylesFromKeys() {
     const keyMap = await figma.clientStorage.getAsync(STORAGE_KEY);
-    if (!keyMap || Object.keys(keyMap).length === 0) return {};
-    const styleMap = {};
-    for (const [styleName, key] of Object.entries(keyMap)) {
+    if (!keyMap) return null;
+    const result = { page: null, layers: {}, states: {}, immutable: {} };
+    if (keyMap.page) {
       try {
-        const style = await figma.importStyleByKeyAsync(key);
-        if (style) {
-          styleMap[styleName] = style;
-          console.log(`\u2705 Importado: "${styleName}"`);
-        }
+        result.page = await figma.importStyleByKeyAsync(keyMap.page);
       } catch (e) {
-        console.warn(`\u26A0\uFE0F Falha ao importar "${styleName}" (key: ${key})`);
+        console.warn("\u26A0\uFE0F Falha ao importar P\xE1gina Inicial");
       }
     }
-    return styleMap;
+    for (const [depthStr, key] of Object.entries(keyMap.layers)) {
+      try {
+        const style = await figma.importStyleByKeyAsync(key);
+        if (style) result.layers[Number(depthStr)] = style;
+      } catch (e) {
+        console.warn(`\u26A0\uFE0F Falha ao importar camada ${depthStr}`);
+      }
+    }
+    for (const [name, key] of Object.entries(keyMap.states)) {
+      try {
+        const style = await figma.importStyleByKeyAsync(key);
+        if (style) result.states[name] = style;
+      } catch (e) {
+        console.warn(`\u26A0\uFE0F Falha ao importar estado "${name}"`);
+      }
+    }
+    for (const [name, key] of Object.entries(keyMap.immutable)) {
+      try {
+        const style = await figma.importStyleByKeyAsync(key);
+        if (style) result.immutable[name] = style;
+      } catch (e) {
+        console.warn(`\u26A0\uFE0F Falha ao importar imut\xE1vel "${name}"`);
+      }
+    }
+    return result;
   }
   async function discoverStylesFromFile() {
-    const styleMap = {};
+    var _a, _b, _c, _d;
+    const result = { page: null, layers: {}, states: {}, immutable: {} };
     const seenIds = /* @__PURE__ */ new Set();
     for (const page of figma.root.children) {
       await page.loadAsync();
@@ -113,22 +125,24 @@
         try {
           const style = await figma.getStyleByIdAsync(fillStyleId);
           if (!style) continue;
-          const parts = style.name.split("/");
-          const lastName = parts[parts.length - 1].trim();
-          for (const [, expected] of Object.entries(STYLE_NAMES)) {
-            if (lastName.toLowerCase() === expected.toLowerCase()) {
-              styleMap[expected] = style;
-            }
+          const lastName = (_b = (_a = style.name.split("/").pop()) == null ? void 0 : _a.trim()) != null ? _b : "";
+          const folder = (_d = (_c = style.name.split("/").slice(-2, -1)[0]) == null ? void 0 : _c.trim()) != null ? _d : "";
+          if (lastName.toLowerCase() === PAGE_STYLE_NAME.toLowerCase()) {
+            result.page = style;
+          } else if (folder === FOLDER_IMMUTABLE) {
+            result.immutable[lastName] = style;
           }
         } catch (e) {
         }
       }
     }
-    return styleMap;
+    return result;
   }
   async function getStyleMap() {
     const fromKeys = await loadStylesFromKeys();
-    if (Object.keys(fromKeys).length > 0) return fromKeys;
+    if (fromKeys && (fromKeys.page || Object.keys(fromKeys.layers).length > 0)) {
+      return fromKeys;
+    }
     console.warn("Nenhuma key salva. Tentando auto-descoberta...");
     return await discoverStylesFromFile();
   }
@@ -154,21 +168,20 @@
     return PAGE_SECTION_NAMES.includes(section.name.trim());
   }
   function resolveExpectedStyle(section, styleMap) {
-    var _a, _b;
+    var _a;
     if (isPageSection(section)) {
-      return (_a = styleMap[STYLE_NAMES.PAGE]) != null ? _a : null;
+      return styleMap.page;
     }
     const depth = getSectionDepth(section);
-    const index = Math.min(depth - 1, DEPTH_STYLE_NAMES.length - 1);
-    return (_b = styleMap[DEPTH_STYLE_NAMES[index]]) != null ? _b : null;
+    const availableDepths = Object.keys(styleMap.layers).map(Number).sort((a, b) => a - b);
+    if (availableDepths.length === 0) return null;
+    const targetDepth = availableDepths.includes(depth) ? depth : availableDepths[availableDepths.length - 1];
+    return (_a = styleMap.layers[targetDepth]) != null ? _a : null;
   }
   function isImmutable(section, styleMap) {
     const fillStyleId = section.fillStyleId;
     if (typeof fillStyleId !== "string") return false;
-    const immutableIds = IMMUTABLE_STYLE_NAMES.map((name) => {
-      var _a;
-      return (_a = styleMap[name]) == null ? void 0 : _a.id;
-    }).filter((id) => Boolean(id));
+    const immutableIds = Object.values(styleMap.immutable).map((s) => s.id).filter(Boolean);
     return immutableIds.includes(fillStyleId);
   }
 
@@ -188,7 +201,8 @@
       return;
     }
     const styleMap = await getStyleMap();
-    if (Object.keys(styleMap).length === 0) {
+    const totalLayers = Object.keys(styleMap.layers).length;
+    if (!styleMap.page && totalLayers === 0) {
       sendResetDone(
         false,
         "Nenhum style encontrado.",
@@ -198,12 +212,8 @@
       figma.notify("\u274C Rode o Setup na biblioteca primeiro.", { error: true });
       return;
     }
-    const missing = Object.values(STYLE_NAMES).filter((n) => !styleMap[n]);
-    if (missing.length > 0) {
-      console.warn("\u26A0\uFE0F Styles n\xE3o encontrados:", missing.join(", "));
-    }
     const sections = getSections();
-    console.log("Total de sections:", sections.length);
+    console.log(`Total de sections: ${sections.length} | Camadas dispon\xEDveis: ${totalLayers}`);
     let updated = 0, ignored = 0, skipped = 0;
     for (const section of sections) {
       if (isImmutable(section, styleMap)) {
@@ -222,12 +232,10 @@
       }
     }
     const stats = { updated, ignored, skipped };
-    const detail = missing.length > 0 ? `Styles n\xE3o encontrados: ${missing.join(", ")}` : void 0;
     sendResetDone(
       true,
       `${updated} atualizadas \xB7 ${ignored} ignoradas \xB7 ${skipped} sem style`,
-      stats,
-      detail
+      stats
     );
     figma.notify(`\u2705 ${updated} atualizadas | \u{1F512} ${ignored} ignoradas`);
   }
