@@ -21,6 +21,7 @@ export function getSectionDepth(section) {
 export function isPageSection(section) {
     return PAGE_SECTION_NAMES.includes(section.name.trim());
 }
+<<<<<<< HEAD
 // ─── Verifica se a section é de componentes pelo nome ────────────────────────
 // Aceita: "componente", "componentes", "Componente", "Componentes" etc.
 export function isComponentSection(section) {
@@ -38,10 +39,20 @@ export function resolveExpectedStyle(section, styleMap) {
         return (_a = styleMap.immutable["Componentes"]) !== null && _a !== void 0 ? _a : null;
     }
     // Demais → profundidade
+=======
+// ─── Resolve qual style deve ser aplicado na section ─────────────────────────
+// Lógica: nome exato → Página Inicial | profundidade → camada mais próxima
+export function resolveExpectedStyle(section, styleMap) {
+    var _a;
+    if (isPageSection(section)) {
+        return styleMap.page;
+    }
+>>>>>>> 3313ac6b9db281a4b07d9c04fd045d09d2440346
     const depth = getSectionDepth(section);
     const availableDepths = Object.keys(styleMap.layers).map(Number).sort((a, b) => a - b);
     if (availableDepths.length === 0)
         return null;
+<<<<<<< HEAD
     const targetDepth = availableDepths.includes(depth)
         ? depth
         : availableDepths[availableDepths.length - 1];
@@ -49,6 +60,15 @@ export function resolveExpectedStyle(section, styleMap) {
 }
 // ─── Verifica se a section tem um style imutável aplicado ────────────────────
 // Inclui sections de componentes que já têm o style correto aplicado.
+=======
+    // Usa a camada exata ou a mais profunda disponível como fallback
+    const targetDepth = availableDepths.includes(depth)
+        ? depth
+        : availableDepths[availableDepths.length - 1];
+    return (_a = styleMap.layers[targetDepth]) !== null && _a !== void 0 ? _a : null;
+}
+// ─── Verifica se a section tem um style imutável aplicado ────────────────────
+>>>>>>> 3313ac6b9db281a4b07d9c04fd045d09d2440346
 export function isImmutable(section, styleMap) {
     const fillStyleId = section.fillStyleId;
     if (typeof fillStyleId !== "string")
@@ -56,6 +76,7 @@ export function isImmutable(section, styleMap) {
     const immutableIds = Object.values(styleMap.immutable)
         .map((s) => s.id)
         .filter(Boolean);
+<<<<<<< HEAD
     // Se já tem o style imutável aplicado → ignorar
     if (immutableIds.includes(fillStyleId))
         return true;
@@ -66,4 +87,7 @@ export function isImmutable(section, styleMap) {
             return true;
     }
     return false;
+=======
+    return immutableIds.includes(fillStyleId);
+>>>>>>> 3313ac6b9db281a4b07d9c04fd045d09d2440346
 }
