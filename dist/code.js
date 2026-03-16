@@ -175,22 +175,33 @@
   function isPageSection(section) {
     return PAGE_SECTION_NAMES.includes(section.name.trim());
   }
+  function isComponentSection(section) {
+    return /^componentes?$/i.test(section.name.trim());
+  }
   function resolveExpectedStyle(section, styleMap) {
-    var _a;
+    var _a, _b;
     if (isPageSection(section)) {
       return styleMap.page;
+    }
+    if (isComponentSection(section)) {
+      return (_a = styleMap.immutable["Componentes"]) != null ? _a : null;
     }
     const depth = getSectionDepth(section);
     const availableDepths = Object.keys(styleMap.layers).map(Number).sort((a, b) => a - b);
     if (availableDepths.length === 0) return null;
     const targetDepth = availableDepths.includes(depth) ? depth : availableDepths[availableDepths.length - 1];
-    return (_a = styleMap.layers[targetDepth]) != null ? _a : null;
+    return (_b = styleMap.layers[targetDepth]) != null ? _b : null;
   }
   function isImmutable(section, styleMap) {
     const fillStyleId = section.fillStyleId;
     if (typeof fillStyleId !== "string") return false;
     const immutableIds = Object.values(styleMap.immutable).map((s) => s.id).filter(Boolean);
-    return immutableIds.includes(fillStyleId);
+    if (immutableIds.includes(fillStyleId)) return true;
+    if (isComponentSection(section)) {
+      const componentStyle = styleMap.immutable["Componentes"];
+      if (componentStyle && fillStyleId === componentStyle.id) return true;
+    }
+    return false;
   }
 
   // src/reset.ts

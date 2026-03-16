@@ -29,23 +29,35 @@ export function isPageSection(section: SectionNode): boolean {
   return PAGE_SECTION_NAMES.includes(section.name.trim())
 }
 
+// ─── Verifica se a section é de componentes pelo nome ────────────────────────
+// Aceita: "componente", "componentes", "Componente", "Componentes" etc.
+
+export function isComponentSection(section: SectionNode): boolean {
+  return /^componentes?$/i.test(section.name.trim())
+}
+
 // ─── Resolve qual style deve ser aplicado na section ─────────────────────────
-// Lógica: nome exato → Página Inicial | profundidade → camada mais próxima
 
 export function resolveExpectedStyle(
   section: SectionNode,
   styleMap: ResolvedStyleMap
 ): BaseStyle | null {
+
+  // Nome exato → Página Inicial
   if (isPageSection(section)) {
     return styleMap.page
   }
 
+  // Nome de componente → style Componentes do folder Cores de Identificação
+  if (isComponentSection(section)) {
+    return styleMap.immutable["Componentes"] ?? null
+  }
+
+  // Demais → profundidade
   const depth = getSectionDepth(section)
   const availableDepths = Object.keys(styleMap.layers).map(Number).sort((a, b) => a - b)
-
   if (availableDepths.length === 0) return null
 
-  // Usa a camada exata ou a mais profunda disponível como fallback
   const targetDepth = availableDepths.includes(depth)
     ? depth
     : availableDepths[availableDepths.length - 1]
@@ -54,6 +66,7 @@ export function resolveExpectedStyle(
 }
 
 // ─── Verifica se a section tem um style imutável aplicado ────────────────────
+// Inclui sections de componentes que já têm o style correto aplicado.
 
 export function isImmutable(
   section: SectionNode,
@@ -66,5 +79,14 @@ export function isImmutable(
     .map((s) => s.id)
     .filter(Boolean)
 
-  return immutableIds.includes(fillStyleId)
+  // Se já tem o style imutável aplicado → ignorar
+  if (immutableIds.includes(fillStyleId)) return true
+
+  // Se é section de componentes e já tem o style Componentes → ignorar
+  if (isComponentSection(section)) {
+    const componentStyle = styleMap.immutable["Componentes"]
+    if (componentStyle && fillStyleId === componentStyle.id) return true
+  }
+
+  return false
 }
