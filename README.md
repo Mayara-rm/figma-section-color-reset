@@ -120,4 +120,4 @@ Após compilar, importe o plugin no Figma via **Plugins → Development → Impo
 
 ---
 
-Desenvolvido por **Mayara Moraes · UOTZ**
+Desenvolvido por **Mayara Moraes e Luiz D'urso · UOTZ**
