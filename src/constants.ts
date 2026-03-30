@@ -6,9 +6,8 @@ export const LIBRARY_FILE_KEY = "COLE_AQUI_O_ID_DA_BIBLIOTECA"
 
 export const STORAGE_KEY = "styleKeyMap"
 
-// ─── Sections com nome exato que recebem a cor de Página Inicial ──────────────
-
-export const PAGE_SECTION_NAMES = ["1 - Login", "2 - Home"]
+// ─── Nome do style de página inicial ─────────────────────────────────────────
+// Sections cujo nome contenha "login" ou "home" recebem esse style.
 
 // ─── Nome do style de página inicial ─────────────────────────────────────────
 

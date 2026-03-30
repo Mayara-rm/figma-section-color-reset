@@ -1,4 +1,3 @@
-import { PAGE_SECTION_NAMES } from "./constants"
 import { ResolvedStyleMap } from "./styles"
 
 // ─── Retorna sections selecionadas ou todas da página ─────────────────────────
@@ -24,9 +23,11 @@ export function getSectionDepth(section: SectionNode): number {
 }
 
 // ─── Verifica se a section deve receber a cor de Página Inicial ───────────────
+// Reconhece qualquer nome que contenha "login" ou "home" (case-insensitive)
 
 export function isPageSection(section: SectionNode): boolean {
-  return PAGE_SECTION_NAMES.includes(section.name.trim())
+  const name = section.name.trim().toLowerCase()
+  return name.includes("login") || name.includes("home")
 }
 
 // ─── Verifica se a section é de componentes pelo nome ────────────────────────

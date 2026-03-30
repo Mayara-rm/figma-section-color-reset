@@ -3,7 +3,6 @@
   // src/constants.ts
   var LIBRARY_FILE_KEY = "COLE_AQUI_O_ID_DA_BIBLIOTECA";
   var STORAGE_KEY = "styleKeyMap";
-  var PAGE_SECTION_NAMES = ["1 - Login", "2 - Home"];
   var PAGE_STYLE_NAME = "P\xE1gina Inicial";
   var FOLDER_BASE = "Cores Base";
   var FOLDER_IMMUTABLE = "Cores de Identifica\xE7\xE3o";
@@ -71,6 +70,7 @@
       return;
     }
     await figma.clientStorage.setAsync(STORAGE_KEY, keyMap);
+    await figma.clientStorage.setAsync(STORAGE_KEY + "_count", styles.length);
     const totalLayers = Object.keys(keyMap.layers).length;
     const totalStates = Object.keys(keyMap.states).length;
     const totalImmutable = Object.keys(keyMap.immutable).length;
@@ -173,7 +173,8 @@
     return depth;
   }
   function isPageSection(section) {
-    return PAGE_SECTION_NAMES.includes(section.name.trim());
+    const name = section.name.trim().toLowerCase();
+    return name.includes("login") || name.includes("home");
   }
   function isComponentSection(section) {
     return /^componentes?$/i.test(section.name.trim());

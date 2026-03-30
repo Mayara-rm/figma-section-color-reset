@@ -14,19 +14,9 @@
       --purple-900: #1e0a33;
 
       --green:       #4ade80;
-      --green-dim:   #166534;
-      --green-bg:    #052e16;
-
       --blue:        #60a5fa;
-      --blue-dim:    #1e40af;
-      --blue-bg:     #0a1628;
-
       --gray:        #6b7280;
-      --gray-bg:     #1c1c24;
-
       --red:         #f87171;
-      --red-bg:      #1f0a0a;
-
       --amber:       #fbbf24;
 
       --bg:          #0f0f17;
@@ -50,7 +40,6 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ── Header ──────────────────────────────────── */
     .header {
       display: flex;
       align-items: center;
@@ -59,323 +48,79 @@
       border-bottom: 0.5px solid var(--border);
       background: var(--bg);
     }
-
     .logo { width: 32px; height: 32px; flex-shrink: 0; }
+    .header-text h1 { font-size: 13px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
+    .header-text p  { font-size: 11px; color: var(--text-3); margin-top: 1px; }
 
-    .header-text h1 {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text);
-      letter-spacing: -0.3px;
-    }
-
-    .header-text p {
-      font-size: 11px;
-      color: var(--text-3);
-      margin-top: 1px;
-    }
-
-    /* ── Body ────────────────────────────────────── */
     .body { padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
 
-    /* ── Cards ───────────────────────────────────── */
-    .card {
-      border: 0.5px solid var(--border);
-      border-radius: 10px;
-      overflow: hidden;
-      background: var(--bg-card);
-    }
-
-    .card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 8px 12px;
-      background: var(--bg-hover);
-      border-bottom: 0.5px solid var(--border);
-    }
-
-    .card-header-left {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .card-tag {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text-2);
-      letter-spacing: 0.1px;
-    }
-
-    .card-badge {
-      font-size: 10px;
-      font-weight: 500;
-      padding: 2px 8px;
-      border-radius: 20px;
-    }
-
-    .badge-purple {
-      background: rgba(118, 75, 162, 0.25);
-      color: var(--purple-100);
-      border: 0.5px solid rgba(118,75,162,0.4);
-    }
-
-    .badge-green {
-      background: rgba(74, 222, 128, 0.1);
-      color: var(--green);
-      border: 0.5px solid rgba(74,222,128,0.25);
-    }
-
+    .card { border: 0.5px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--bg-card); }
+    .card-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: var(--bg-hover); border-bottom: 0.5px solid var(--border); }
+    .card-header-left { display: flex; align-items: center; gap: 6px; }
+    .card-tag { font-size: 11px; font-weight: 600; color: var(--text-2); }
+    .card-badge { font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 20px; }
+    .badge-purple { background: rgba(118,75,162,0.25); color: var(--purple-100); border: 0.5px solid rgba(118,75,162,0.4); }
+    .badge-green  { background: rgba(74,222,128,0.1);  color: var(--green);       border: 0.5px solid rgba(74,222,128,0.25); }
     .card-body { padding: 11px 12px; }
+    .card-desc { font-size: 11px; color: var(--text-2); margin-bottom: 10px; line-height: 1.65; }
 
-    .card-desc {
-      font-size: 11px;
-      color: var(--text-2);
-      margin-bottom: 10px;
-      line-height: 1.65;
-    }
-
-    /* ── Buttons ─────────────────────────────────── */
-    .btn {
-      width: 100%;
-      padding: 9px 12px;
-      border-radius: 8px;
-      border: none;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 7px;
-      transition: opacity 0.15s, transform 0.1s;
-      letter-spacing: -0.1px;
-    }
-
+    .btn { width: 100%; padding: 9px 12px; border-radius: 8px; border: none; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; transition: opacity 0.15s, transform 0.1s; letter-spacing: -0.1px; }
     .btn:hover:not(:disabled) { opacity: 0.85; }
     .btn:active:not(:disabled) { transform: scale(0.98); }
     .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .btn-purple { background: var(--purple-500); color: #fff; }
+    .btn-outline { background: transparent; border: 0.5px solid var(--border-2); color: var(--text); }
+    .btn-outline:hover:not(:disabled) { background: var(--bg-hover); opacity: 1; }
 
-    .btn-purple {
-      background: var(--purple-500);
-      color: #fff;
-    }
-
-    .btn-outline {
-      background: transparent;
-      border: 0.5px solid var(--border-2);
-      color: var(--text);
-    }
-
-    .btn-outline:hover:not(:disabled) {
-      background: var(--bg-hover);
-      opacity: 1;
-    }
-
-    /* ── Status bar ──────────────────────────────── */
-    .status-bar {
-      font-size: 11px;
-      min-height: 16px;
-      margin-top: 8px;
-      text-align: center;
-      color: var(--text-3);
-      font-weight: 400;
-    }
+    .status-bar { font-size: 11px; min-height: 16px; margin-top: 8px; text-align: center; color: var(--text-3); }
     .status-bar.loading { color: var(--purple-400); }
     .status-bar.success { color: var(--green); }
     .status-bar.error   { color: var(--red); }
+    .status-bar.warning { color: var(--amber); }
 
-    /* ── Stats ───────────────────────────────────── */
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 6px;
-      margin-top: 10px;
-    }
+    .progress-wrap { display: none; flex-direction: column; gap: 5px; padding: 10px 12px; background: var(--bg-hover); border-radius: 8px; border: 0.5px solid var(--border); margin-top: 8px; }
+    .progress-wrap.visible { display: flex; }
+    .progress-top { display: flex; justify-content: space-between; align-items: center; }
+    .progress-label { font-size: 11px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+    .progress-pct { font-size: 11px; font-weight: 600; color: var(--purple-400); flex-shrink: 0; }
+    .progress-track { width: 100%; height: 4px; background: var(--border-2); border-radius: 4px; overflow: hidden; }
+    .progress-fill { height: 100%; width: 0%; border-radius: 4px; background: var(--purple-500); transition: width 0.15s ease; }
+    .progress-fill.loading { background: linear-gradient(90deg, var(--purple-500) 0%, var(--purple-400) 50%, var(--purple-500) 100%); background-size: 200% 100%; animation: shimmer 1.2s infinite; }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    .progress-fill.done { background: var(--green); animation: none; }
 
-    .stat {
-      background: var(--bg-hover);
-      border: 0.5px solid var(--border);
-      border-radius: 8px;
-      padding: 8px 4px;
-      text-align: center;
-    }
-
-    .stat-value {
-      font-size: 22px;
-      font-weight: 700;
-      line-height: 1;
-      letter-spacing: -1px;
-    }
-
-    .stat-label {
-      font-size: 10px;
-      color: var(--text-3);
-      margin-top: 3px;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-      font-weight: 500;
-    }
-
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
+    .stat { background: var(--bg-hover); border: 0.5px solid var(--border); border-radius: 8px; padding: 8px 4px; text-align: center; }
+    .stat-value { font-size: 22px; font-weight: 700; line-height: 1; letter-spacing: -1px; }
+    .stat-label { font-size: 10px; color: var(--text-3); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.3px; font-weight: 500; }
     .stat.green .stat-value { color: var(--green); }
-    .stat.blue  .stat-value { color: var(--blue);  }
-    .stat.gray  .stat-value { color: var(--gray);  }
+    .stat.blue  .stat-value { color: var(--blue); }
+    .stat.gray  .stat-value { color: var(--gray); }
 
-    /* ── History ─────────────────────────────────── */
-    .history-section {
-      background: var(--bg-card);
-      border: 0.5px solid var(--border);
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
-    .history-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 8px 12px;
-      background: var(--bg-hover);
-      border-bottom: 0.5px solid var(--border);
-    }
-
-    .history-title {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text-2);
-      letter-spacing: 0.1px;
-    }
-
-    .history-clear {
-      font-size: 11px;
-      color: var(--text-3);
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 0;
-      width: auto;
-      font-weight: 400;
-    }
+    .history-section { background: var(--bg-card); border: 0.5px solid var(--border); border-radius: 10px; overflow: hidden; }
+    .history-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: var(--bg-hover); border-bottom: 0.5px solid var(--border); }
+    .history-title { font-size: 11px; font-weight: 600; color: var(--text-2); }
+    .history-clear { font-size: 11px; color: var(--text-3); background: none; border: none; cursor: pointer; padding: 0; width: auto; font-weight: 400; }
     .history-clear:hover { color: var(--red); }
-
-    .history-list {
-      display: flex;
-      flex-direction: column;
-      padding: 8px;
-      gap: 5px;
-      max-height: 180px;
-      overflow-y: auto;
-    }
+    .history-list { display: flex; flex-direction: column; padding: 8px; gap: 5px; max-height: 180px; overflow-y: auto; }
     .history-list::-webkit-scrollbar { width: 3px; }
     .history-list::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 3px; }
-
-    .history-empty {
-      font-size: 11px;
-      color: var(--text-3);
-      text-align: center;
-      padding: 16px 0;
-    }
-
-    .history-item {
-      border-radius: 7px;
-      padding: 7px 10px;
-      border-left: 2.5px solid var(--border-2);
-      background: var(--bg-hover);
-    }
+    .history-empty { font-size: 11px; color: var(--text-3); text-align: center; padding: 16px 0; }
+    .history-item { border-radius: 7px; padding: 7px 10px; border-left: 2.5px solid var(--border-2); background: var(--bg-hover); }
     .history-item.success { border-left-color: var(--green); }
     .history-item.error   { border-left-color: var(--red); }
     .history-item.warning { border-left-color: var(--amber); }
-
     .history-time   { font-size: 10px; color: var(--text-3); margin-bottom: 2px; }
     .history-text   { font-size: 11px; color: var(--text); font-weight: 500; }
     .history-detail { font-size: 10px; color: var(--text-2); margin-top: 3px; line-height: 1.5; }
 
-    .color-check {
-      font-size: 10px;
-      color: var(--green);
-    }
-
-    /* ── Progress bar ────────────────────────────── */
-    .progress-wrap {
-      display: none;
-      flex-direction: column;
-      gap: 5px;
-      padding: 10px 12px;
-      background: var(--bg-hover);
-      border-radius: 8px;
-      border: 0.5px solid var(--border);
-      margin-top: 8px;
-    }
-    .progress-wrap.visible { display: flex; }
-
-    .progress-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .progress-label {
-      font-size: 11px;
-      color: var(--text-2);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 180px;
-    }
-    .progress-pct {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--purple-400);
-      flex-shrink: 0;
-    }
-    .progress-track {
-      width: 100%;
-      height: 4px;
-      background: var(--border-2);
-      border-radius: 4px;
-      overflow: hidden;
-    }
-    .progress-fill {
-      height: 100%;
-      width: 0%;
-      border-radius: 4px;
-      background: var(--purple-500);
-      transition: width 0.15s ease;
-    }
-    .progress-fill.loading {
-      background: linear-gradient(90deg, var(--purple-500) 0%, var(--purple-400) 50%, var(--purple-500) 100%);
-      background-size: 200% 100%;
-      animation: shimmer 1.2s infinite;
-    }
-    @keyframes shimmer {
-      0%   { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
-    .progress-fill.done { background: var(--green); animation: none; }
-    .footer {
-      padding: 8px 14px 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-
-    .footer-dot {
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      background: var(--purple-500);
-      opacity: 0.5;
-    }
-
-    .footer-text {
-      font-size: 10px;
-      color: var(--text-3);
-    }
+    .footer { padding: 8px 14px 12px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .footer-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--purple-500); opacity: 0.5; }
+    .footer-text { font-size: 10px; color: var(--text-3); }
   </style>
 </head>
 <body>
 
-  <!-- Header -->
   <div class="header">
     <svg class="logo" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
       <rect width="40" height="40" rx="10" fill="#1a0a2e"/>
@@ -387,14 +132,12 @@
     </svg>
     <div class="header-text">
       <h1>ColorStack</h1>
-      <p>Figma Plugin</p>
+      <p>by Mayara · Figma Plugin</p>
     </div>
   </div>
 
-  <!-- Body -->
   <div class="body">
 
-    <!-- Biblioteca -->
     <div class="card">
       <div class="card-header">
         <div class="card-header-left">
@@ -416,20 +159,16 @@
         </button>
         <div class="status-bar" id="status-setup"></div>
         <div id="setup-done-label" style="display:none;margin-top:8px;text-align:center;font-size:11px;color:var(--green);">✓ Importação realizada</div>
-
         <div class="progress-wrap" id="progress-setup">
           <div class="progress-top">
             <span class="progress-label" id="progress-setup-label">Processando...</span>
             <span class="progress-pct" id="progress-setup-pct">0%</span>
           </div>
-          <div class="progress-track">
-            <div class="progress-fill" id="progress-setup-fill"></div>
-          </div>
+          <div class="progress-track"><div class="progress-fill" id="progress-setup-fill"></div></div>
         </div>
       </div>
     </div>
 
-    <!-- Projeto -->
     <div class="card">
       <div class="card-header">
         <div class="card-header-left">
@@ -451,35 +190,21 @@
           Resetar cores
         </button>
         <div class="status-bar" id="status-reset"></div>
-
         <div class="progress-wrap" id="progress-reset">
           <div class="progress-top">
             <span class="progress-label" id="progress-reset-label">Processando...</span>
             <span class="progress-pct" id="progress-reset-pct">0%</span>
           </div>
-          <div class="progress-track">
-            <div class="progress-fill" id="progress-reset-fill"></div>
-          </div>
+          <div class="progress-track"><div class="progress-fill" id="progress-reset-fill"></div></div>
         </div>
-
         <div class="stats" id="stats-row" style="display:none">
-          <div class="stat green">
-            <div class="stat-value" id="stat-updated">0</div>
-            <div class="stat-label">Atualizadas</div>
-          </div>
-          <div class="stat blue">
-            <div class="stat-value" id="stat-ignored">0</div>
-            <div class="stat-label">Ignoradas</div>
-          </div>
-          <div class="stat gray">
-            <div class="stat-value" id="stat-skipped">0</div>
-            <div class="stat-label">Sem style</div>
-          </div>
+          <div class="stat green"><div class="stat-value" id="stat-updated">0</div><div class="stat-label">Atualizadas</div></div>
+          <div class="stat blue"><div class="stat-value" id="stat-ignored">0</div><div class="stat-label">Ignoradas</div></div>
+          <div class="stat gray"><div class="stat-value" id="stat-skipped">0</div><div class="stat-label">Sem style</div></div>
         </div>
       </div>
     </div>
 
-    <!-- Histórico -->
     <div class="history-section">
       <div class="history-header">
         <span class="history-title">Histórico</span>
@@ -492,18 +217,15 @@
 
   </div>
 
-  <!-- Footer -->
   <div class="footer">
     <div class="footer-dot"></div>
-    <span class="footer-text">ColorStack v1.0</span>
+    <span class="footer-text">colorstack v1.0</span>
     <div class="footer-dot"></div>
   </div>
 
   <script>
     function now() {
-      return new Date().toLocaleTimeString("pt-BR", {
-        hour: "2-digit", minute: "2-digit", second: "2-digit"
-      })
+      return new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
     }
 
     function setStatus(id, msg, type) {
@@ -522,53 +244,33 @@
       const list = document.getElementById("history-list")
       const empty = list.querySelector(".history-empty")
       if (empty) empty.remove()
-
       const item = document.createElement("div")
       item.className = "history-item " + (type || "success")
       item.innerHTML =
         '<div class="history-time">' + now() + '</div>' +
         '<div class="history-text">' + text + '</div>' +
         (detail ? '<div class="history-detail">' + detail + '</div>' : '')
-
       list.prepend(item)
     }
 
-    document.getElementById("clear-history").addEventListener("click", () => {
-      document.getElementById("history-list").innerHTML =
-        '<div class="history-empty">Nenhuma ação executada ainda.</div>'
-      document.getElementById("stats-row").style.display = "none"
-    })
-
-    document.getElementById("btn-reset").addEventListener("click", () => {
-      setLoading("btn-reset", "status-reset", true, "Aplicando cores nas sections...")
-      setProgress("reset", 0, "Iniciando...")
-      parent.postMessage({ pluginMessage: { type: "reset" } }, "*")
-    })
-
-    document.getElementById("btn-setup").addEventListener("click", () => {
-      setLoading("btn-setup", "status-setup", true, "Buscando estilos na biblioteca...")
-      setProgress("setup", 0, "Iniciando...")
-      parent.postMessage({ pluginMessage: { type: "setup" } }, "*")
-    })
+    function markSetupDone() {
+      const btn = document.getElementById("btn-setup")
+      btn.disabled = true
+      btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3.5 3.5 6.5-7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg> Setup concluído'
+      document.getElementById("setup-done-label").style.display = "block"
+    }
 
     function setProgress(prefix, pct, label) {
       const wrap  = document.getElementById("progress-" + prefix)
       const fill  = document.getElementById("progress-" + prefix + "-fill")
       const pctEl = document.getElementById("progress-" + prefix + "-pct")
       const lblEl = document.getElementById("progress-" + prefix + "-label")
-
       wrap.classList.add("visible")
       fill.style.width = pct + "%"
       pctEl.textContent = pct + "%"
       if (label) lblEl.textContent = label
-
-      if (pct >= 100) {
-        fill.classList.remove("loading")
-        fill.classList.add("done")
-      } else {
-        fill.classList.add("loading")
-        fill.classList.remove("done")
-      }
+      if (pct >= 100) { fill.classList.remove("loading"); fill.classList.add("done") }
+      else { fill.classList.add("loading"); fill.classList.remove("done") }
     }
 
     function hideProgress(prefix) {
@@ -581,18 +283,27 @@
       }, 800)
     }
 
-    function markSetupDone() {
-      const btn = document.getElementById("btn-setup")
-      btn.disabled = true
-      btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3.5 3.5 6.5-7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg> Setup concluído'
-      document.getElementById("setup-done-label").style.display = "block"
-    }
+    document.getElementById("clear-history").addEventListener("click", () => {
+      document.getElementById("history-list").innerHTML = '<div class="history-empty">Nenhuma ação executada ainda.</div>'
+      document.getElementById("stats-row").style.display = "none"
+    })
+
+    document.getElementById("btn-setup").addEventListener("click", () => {
+      setLoading("btn-setup", "status-setup", true, "Buscando estilos na biblioteca...")
+      setProgress("setup", 0, "Iniciando...")
+      parent.postMessage({ pluginMessage: { type: "setup" } }, "*")
+    })
+
+    document.getElementById("btn-reset").addEventListener("click", () => {
+      setLoading("btn-reset", "status-reset", true, "Aplicando cores nas sections...")
+      setProgress("reset", 0, "Iniciando...")
+      parent.postMessage({ pluginMessage: { type: "reset" } }, "*")
+    })
 
     function autoResize() {
       const h = document.body.scrollHeight
       parent.postMessage({ pluginMessage: { type: "resize", height: h } }, "*")
     }
-
     const ro = new ResizeObserver(autoResize)
     ro.observe(document.body)
 
@@ -640,4 +351,3 @@
   </script>
 </body>
 </html>
-

@@ -103,6 +103,7 @@ export async function saveStyleKeys(): Promise<void> {
   }
 
   await figma.clientStorage.setAsync(STORAGE_KEY, keyMap)
+  await figma.clientStorage.setAsync(STORAGE_KEY + "_count", styles.length)
 
   const totalLayers    = Object.keys(keyMap.layers).length
   const totalStates    = Object.keys(keyMap.states).length
