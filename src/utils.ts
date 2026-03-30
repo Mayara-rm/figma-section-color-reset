@@ -23,11 +23,12 @@ export function getSectionDepth(section: SectionNode): number {
 }
 
 // ─── Verifica se a section deve receber a cor de Página Inicial ───────────────
-// Reconhece qualquer nome que contenha "login" ou "home" (case-insensitive)
+// Reconhece padrões como: "login", "Login", "1-login", "1 - Login", "home", "1-Home", etc.
 
 export function isPageSection(section: SectionNode): boolean {
-  const name = section.name.trim().toLowerCase()
-  return name.includes("login") || name.includes("home")
+  const name = section.name.trim()
+  const pattern = /^(\d+\s*-\s*)?(login|home)$/i
+  return pattern.test(name)
 }
 
 // ─── Verifica se a section é de componentes pelo nome ────────────────────────

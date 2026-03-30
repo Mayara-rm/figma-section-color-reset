@@ -173,8 +173,9 @@
     return depth;
   }
   function isPageSection(section) {
-    const name = section.name.trim().toLowerCase();
-    return name.includes("login") || name.includes("home");
+    const name = section.name.trim();
+    const pattern = /^(\d+\s*-\s*)?(login|home)$/i;
+    return pattern.test(name);
   }
   function isComponentSection(section) {
     return /^componentes?$/i.test(section.name.trim());
