@@ -23,12 +23,11 @@ export function getSectionDepth(section: SectionNode): number {
 }
 
 // ─── Verifica se a section deve receber a cor de Página Inicial ───────────────
-// Reconhece padrões como: "login", "Login", "1-login", "1 - Login", "home", "1-Home", etc.
+// Reconhece qualquer nome que contenha "login" ou "home" (case-insensitive)
 
 export function isPageSection(section: SectionNode): boolean {
-  const name = section.name.trim()
-  const pattern = /^(\d+\s*-\s*)?(login|home)$/i
-  return pattern.test(name)
+  const name = section.name.trim().toLowerCase()
+  return name.includes("login") || name.includes("home")
 }
 
 // ─── Verifica se a section é de componentes pelo nome ────────────────────────
@@ -38,6 +37,14 @@ export function isComponentSection(section: SectionNode): boolean {
   return /^componentes?$/i.test(section.name.trim())
 }
 
+// ─── Busca um style no mapa de imutáveis por nome (case-insensitive) ─────────
+
+function findImmutableStyle(styleMap: ResolvedStyleMap, name: string): BaseStyle | null {
+  const lower = name.toLowerCase()
+  const found = Object.entries(styleMap.immutable).find(([k]) => k.toLowerCase() === lower)
+  return found ? found[1] : null
+}
+
 // ─── Resolve qual style deve ser aplicado na section ─────────────────────────
 
 export function resolveExpectedStyle(
@@ -45,14 +52,14 @@ export function resolveExpectedStyle(
   styleMap: ResolvedStyleMap
 ): BaseStyle | null {
 
-  // Nome exato → Página Inicial
+  // Nome contém "login" ou "home" → Página Inicial
   if (isPageSection(section)) {
     return styleMap.page
   }
 
   // Nome de componente → style Componentes do folder Cores de Identificação
   if (isComponentSection(section)) {
-    return styleMap.immutable["Componentes"] ?? null
+    return findImmutableStyle(styleMap, "Componentes")
   }
 
   // Demais → profundidade
@@ -90,7 +97,7 @@ export function isImmutable(
 
   // Se é section de componentes e já tem o style Componentes → ignorar
   if (isComponentSection(section)) {
-    const componentStyle = styleMap.immutable["Componentes"]
+    const componentStyle = findImmutableStyle(styleMap, "Componentes")
     if (componentStyle && sectionBaseId === baseId(componentStyle.id)) return true
   }
 

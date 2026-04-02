@@ -173,26 +173,30 @@
     return depth;
   }
   function isPageSection(section) {
-    const name = section.name.trim();
-    const pattern = /^(\d+\s*-\s*)?(login|home)$/i;
-    return pattern.test(name);
+    const name = section.name.trim().toLowerCase();
+    return name.includes("login") || name.includes("home");
   }
   function isComponentSection(section) {
     return /^componentes?$/i.test(section.name.trim());
   }
+  function findImmutableStyle(styleMap, name) {
+    const lower = name.toLowerCase();
+    const found = Object.entries(styleMap.immutable).find(([k]) => k.toLowerCase() === lower);
+    return found ? found[1] : null;
+  }
   function resolveExpectedStyle(section, styleMap) {
-    var _a, _b;
+    var _a;
     if (isPageSection(section)) {
       return styleMap.page;
     }
     if (isComponentSection(section)) {
-      return (_a = styleMap.immutable["Componentes"]) != null ? _a : null;
+      return findImmutableStyle(styleMap, "Componentes");
     }
     const depth = getSectionDepth(section);
     const availableDepths = Object.keys(styleMap.layers).map(Number).sort((a, b) => a - b);
     if (availableDepths.length === 0) return null;
     const targetDepth = availableDepths.includes(depth) ? depth : availableDepths[availableDepths.length - 1];
-    return (_b = styleMap.layers[targetDepth]) != null ? _b : null;
+    return (_a = styleMap.layers[targetDepth]) != null ? _a : null;
   }
   function isImmutable(section, styleMap) {
     const fillStyleId = section.fillStyleId;
@@ -202,7 +206,7 @@
     const immutableBaseIds = Object.values(styleMap.immutable).map((s) => baseId(s.id)).filter(Boolean);
     if (immutableBaseIds.includes(sectionBaseId)) return true;
     if (isComponentSection(section)) {
-      const componentStyle = styleMap.immutable["Componentes"];
+      const componentStyle = findImmutableStyle(styleMap, "Componentes");
       if (componentStyle && sectionBaseId === baseId(componentStyle.id)) return true;
     }
     return false;
