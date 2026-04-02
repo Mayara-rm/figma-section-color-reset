@@ -5,6 +5,7 @@ export const LIBRARY_FILE_KEY = "COLE_AQUI_O_ID_DA_BIBLIOTECA"
 // ─── Chave de armazenamento local ────────────────────────────────────────────
 
 export const STORAGE_KEY = "styleKeyMap"
+export const PAGE_SECTION_NAMES = ["1 - Login", "2 - Home"]
 
 // ─── Nome do style de página inicial ─────────────────────────────────────────
 // Sections cujo nome contenha "login" ou "home" recebem esse style.

@@ -23,11 +23,12 @@ export function getSectionDepth(section: SectionNode): number {
 }
 
 // ─── Verifica se a section deve receber a cor de Página Inicial ───────────────
-// Reconhece qualquer nome que contenha "login" ou "home" (case-insensitive)
+// Reconhece padrões como: "login", "Login", "1-login", "1 - Login", "home", "1-Home", etc.
 
 export function isPageSection(section: SectionNode): boolean {
-  const name = section.name.trim().toLowerCase()
-  return name.includes("login") || name.includes("home")
+  const name = section.name.trim()
+  const pattern = /^(\d+\s*-\s*)?(login|home)$/i
+  return pattern.test(name)
 }
 
 // ─── Verifica se a section é de componentes pelo nome ────────────────────────
@@ -37,14 +38,6 @@ export function isComponentSection(section: SectionNode): boolean {
   return /^componentes?$/i.test(section.name.trim())
 }
 
-// ─── Busca um style no mapa de imutáveis por nome (case-insensitive) ─────────
-
-function findImmutableStyle(styleMap: ResolvedStyleMap, name: string): BaseStyle | null {
-  const lower = name.toLowerCase()
-  const found = Object.entries(styleMap.immutable).find(([k]) => k.toLowerCase() === lower)
-  return found ? found[1] : null
-}
-
 // ─── Resolve qual style deve ser aplicado na section ─────────────────────────
 
 export function resolveExpectedStyle(
@@ -52,14 +45,14 @@ export function resolveExpectedStyle(
   styleMap: ResolvedStyleMap
 ): BaseStyle | null {
 
-  // Nome contém "login" ou "home" → Página Inicial
+  // Nome exato → Página Inicial
   if (isPageSection(section)) {
     return styleMap.page
   }
 
   // Nome de componente → style Componentes do folder Cores de Identificação
   if (isComponentSection(section)) {
-    return findImmutableStyle(styleMap, "Componentes")
+    return styleMap.immutable["Componentes"] ?? null
   }
 
   // Demais → profundidade
@@ -97,7 +90,7 @@ export function isImmutable(
 
   // Se é section de componentes e já tem o style Componentes → ignorar
   if (isComponentSection(section)) {
-    const componentStyle = findImmutableStyle(styleMap, "Componentes")
+    const componentStyle = styleMap.immutable["Componentes"]
     if (componentStyle && sectionBaseId === baseId(componentStyle.id)) return true
   }
 

@@ -63,10 +63,12 @@ export async function resetSectionColors(): Promise<void> {
 
     if (isImmutable(section, styleMap)) {
       ignored++
+      console.log(`🔒 Ignorada (imutável): "${section.name}"`)
       continue
     }
 
     const expected = resolveExpectedStyle(section, styleMap)
+    console.log(`🔍 "${section.name}" → esperado: ${expected ? `"${expected.name}"` : "null (sem style)"}`)
 
     if (!expected) {
       skipped++

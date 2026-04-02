@@ -173,30 +173,26 @@
     return depth;
   }
   function isPageSection(section) {
-    const name = section.name.trim().toLowerCase();
-    return name.includes("login") || name.includes("home");
+    const name = section.name.trim();
+    const pattern = /^(\d+\s*-\s*)?(login|home)$/i;
+    return pattern.test(name);
   }
   function isComponentSection(section) {
     return /^componentes?$/i.test(section.name.trim());
   }
-  function findImmutableStyle(styleMap, name) {
-    const lower = name.toLowerCase();
-    const found = Object.entries(styleMap.immutable).find(([k]) => k.toLowerCase() === lower);
-    return found ? found[1] : null;
-  }
   function resolveExpectedStyle(section, styleMap) {
-    var _a;
+    var _a, _b;
     if (isPageSection(section)) {
       return styleMap.page;
     }
     if (isComponentSection(section)) {
-      return findImmutableStyle(styleMap, "Componentes");
+      return (_a = styleMap.immutable["Componentes"]) != null ? _a : null;
     }
     const depth = getSectionDepth(section);
     const availableDepths = Object.keys(styleMap.layers).map(Number).sort((a, b) => a - b);
     if (availableDepths.length === 0) return null;
     const targetDepth = availableDepths.includes(depth) ? depth : availableDepths[availableDepths.length - 1];
-    return (_a = styleMap.layers[targetDepth]) != null ? _a : null;
+    return (_b = styleMap.layers[targetDepth]) != null ? _b : null;
   }
   function isImmutable(section, styleMap) {
     const fillStyleId = section.fillStyleId;
@@ -206,7 +202,7 @@
     const immutableBaseIds = Object.values(styleMap.immutable).map((s) => baseId(s.id)).filter(Boolean);
     if (immutableBaseIds.includes(sectionBaseId)) return true;
     if (isComponentSection(section)) {
-      const componentStyle = findImmutableStyle(styleMap, "Componentes");
+      const componentStyle = styleMap.immutable["Componentes"];
       if (componentStyle && sectionBaseId === baseId(componentStyle.id)) return true;
     }
     return false;
@@ -253,9 +249,11 @@
       await new Promise((resolve) => setTimeout(resolve, 0));
       if (isImmutable(section, styleMap)) {
         ignored++;
+        console.log(`\u{1F512} Ignorada (imut\xE1vel): "${section.name}"`);
         continue;
       }
       const expected = resolveExpectedStyle(section, styleMap);
+      console.log(`\u{1F50D} "${section.name}" \u2192 esperado: ${expected ? `"${expected.name}"` : "null (sem style)"}`);
       if (!expected) {
         skipped++;
         continue;
