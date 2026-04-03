@@ -139,6 +139,14 @@
             result.page = style;
           } else if (folder === FOLDER_IMMUTABLE) {
             result.immutable[lastName] = style;
+          } else if (folder === FOLDER_BASE) {
+            const match = lastName.match(/camada\s*(\d+)/i);
+            if (match) {
+              const depth = parseInt(match[1], 10);
+              if (!isNaN(depth)) {
+                result.layers[depth] = style;
+              }
+            }
           }
         } catch (e) {
         }

@@ -1,16 +1,16 @@
 // ─── ID do arquivo da biblioteca ─────────────────────────────────────────────
+// Para descobrir o ID, rode no console do plugin (temporariamente):
+//   console.log("FILE KEY:", figma.fileKey)
+// Cole o valor aqui para bloquear o reset no arquivo da biblioteca.
 
 export const LIBRARY_FILE_KEY = "COLE_AQUI_O_ID_DA_BIBLIOTECA"
 
 // ─── Chave de armazenamento local ────────────────────────────────────────────
 
 export const STORAGE_KEY = "styleKeyMap"
-export const PAGE_SECTION_NAMES = ["1 - Login", "2 - Home"]
 
 // ─── Nome do style de página inicial ─────────────────────────────────────────
 // Sections cujo nome contenha "login" ou "home" recebem esse style.
-
-// ─── Nome do style de página inicial ─────────────────────────────────────────
 
 export const PAGE_STYLE_NAME = "Página Inicial"
 

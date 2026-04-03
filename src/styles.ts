@@ -1,4 +1,4 @@
-import { STORAGE_KEY, PAGE_STYLE_NAME, FOLDER_IMMUTABLE } from "./constants"
+import { STORAGE_KEY, PAGE_STYLE_NAME, FOLDER_BASE, FOLDER_IMMUTABLE } from "./constants"
 import { StyleKeyMap } from "./setup"
 
 // ─── Estrutura de styles resolvidos ──────────────────────────────────────────
@@ -61,6 +61,7 @@ export async function loadStylesFromKeys(): Promise<ResolvedStyleMap | null> {
 }
 
 // ─── Fallback: descobre styles via fills já aplicados nas sections ────────────
+// Descobre page, immutable E layers (por nome do style).
 
 export async function discoverStylesFromFile(): Promise<ResolvedStyleMap> {
   const result: ResolvedStyleMap = { page: null, layers: {}, states: {}, immutable: {} }
@@ -86,6 +87,15 @@ export async function discoverStylesFromFile(): Promise<ResolvedStyleMap> {
           result.page = style
         } else if (folder === FOLDER_IMMUTABLE) {
           result.immutable[lastName] = style
+        } else if (folder === FOLDER_BASE) {
+          // Tenta extrair número da camada do nome do style
+          const match = lastName.match(/camada\s*(\d+)/i)
+          if (match) {
+            const depth = parseInt(match[1], 10)
+            if (!isNaN(depth)) {
+              result.layers[depth] = style
+            }
+          }
         }
       } catch {
         // ignorar

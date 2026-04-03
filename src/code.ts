@@ -1,4 +1,4 @@
-import { STORAGE_KEY, LIBRARY_FILE_KEY } from "./constants"
+import { STORAGE_KEY } from "./constants"
 import { saveStyleKeys } from "./setup"
 import { resetSectionColors } from "./reset"
 

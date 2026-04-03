@@ -80,7 +80,9 @@ export async function resetSectionColors(): Promise<void> {
       updated++
       console.log(`✅ "${section.name}" → "${expected.name}"`)
     }
-  }  const stats = { updated, ignored, skipped }
+  }
+
+  const stats = { updated, ignored, skipped }
 
   sendResetDone(
     true,
